@@ -21,16 +21,17 @@ public class Game_logic : MonoBehaviour {
     public Button choice_b3;
     public Button choice_b4;
 
-    public Scrollbar scrollbar_text;
     public Image image;
 
     public Slider Health;
 
+    // Для хранения первоначальной позиции кнопок.
     private Vector2 choice_v1; // После изменения значений этих векторов (choice_v№) сразу же присваиваем их первоначальное значение обратно
     private Vector2 choice_v2;
     private Vector2 choice_v3;
     private Vector2 choice_v4;
 
+    // Для передачи текущей позиции кнопок в SaveGame.  
     private Vector2 choice_sv1;
     private Vector2 choice_sv2;
     private Vector2 choice_sv3;
@@ -40,22 +41,20 @@ public class Game_logic : MonoBehaviour {
     private int countMeaning;
     private int countDeaths;
 
-    private int[] countLikesImage = new int [4];
+    private int[] countLikesImage = new int [4]; // счётчик лайков для картин 
 
     private bool bool_image; /* при указании: ...gameObject.SetActive(...) обязательно присваивать этим переменным соответсвующие логические значения
-    Они нужны, чтобы работать с тем фактом: активны ли эти компоненты? */
+    Они нужны, чтобы работать с тем фактом: активны ли эти компоненты?  Т.е. для передачи состояния активности компонента в SaveGame. */
     private bool bool_choice_1;
     private bool bool_choice_2;
     private bool bool_choice_3;
     private bool bool_choice_4;
     private bool bool_likes_image; 
 
-    private bool[] boolLikesImage = new bool [4]; 
+    private bool[] boolLikesImage = new bool [4]; //Для проверки: есть ли у игрока возможность поставить лайк картине 
 
 
-    // Use this for initialization
     void Start () {
-
         choice_v1 = choice_b1.transform.position;
         choice_v2 = choice_b2.transform.position;
         choice_v3 = choice_b3.transform.position;
@@ -67,6 +66,7 @@ public class Game_logic : MonoBehaviour {
             countMeaning = PlayerPrefs.GetInt("Meaning");
             countDeaths = PlayerPrefs.GetInt("Deaths");
             Health.value = PlayerPrefs.GetFloat("Health");
+            // чтобы следующий блок кода работал, необходимо существование image_count_likes_0 и ability_to_put_like_0. То есть необходимо иметь хотя бы одно сохранение. 
             if (PlayerPrefs.HasKey("image_count_likes_0") == true && PlayerPrefs.HasKey("ability_to_put_like_0") == true)
             {
                 for (int i = 0; i < 4; i++)
@@ -97,6 +97,7 @@ public class Game_logic : MonoBehaviour {
             choice_b2.transform.position = choice_sv2;
             choice_b3.transform.position = choice_sv3;
             choice_b4.transform.position = choice_sv4;
+             
             // 
             if (PlayerPrefs.GetInt("image") == 1)
             {
@@ -152,7 +153,6 @@ public class Game_logic : MonoBehaviour {
                 choice_b4.gameObject.SetActive(false);
             }
 
-
             if (PlayerPrefs.HasKey("image_text") == true)
             {
                 if (PlayerPrefs.GetInt("image_text") == 1)
@@ -164,27 +164,13 @@ public class Game_logic : MonoBehaviour {
                     bool_likes_image = false;
                 }
             }
-
-
-            //
-            if (PlayerPrefs.HasKey("image_count_likes_0") == false || PlayerPrefs.HasKey("ability_to_put_like_0") == false)
-            { // нет смысла проверять каждый элемент массива 
-                
-                for (int i = 0; i < 4; i++)
-                {
-                    countLikesImage[i] = Random.Range(12512, 750014);
-                    
-                    boolLikesImage[i] = true;
-                    
-                }
-            }
-            /*
-            */
-            Lvl(ref tagLvl);
+                      
+            Lvl(ref tagLvl); // переход к уровню из сохранения
+            
+            
+            // если сохранения нет, работает следующий блок кода
         } else
-        {
-            
-            
+        {                       
             for (int i = 0; i < 4; i++)
             {
                 countLikesImage[i] = Random.Range(12512, 750014);
@@ -193,7 +179,7 @@ public class Game_logic : MonoBehaviour {
             tagLvl = 1;
             countMeaning = 100;
             countDeaths = 0;
-            Lvl(ref tagLvl);
+            Lvl(ref tagLvl); // переход к уровню 1
         }
 
         current_level.text = "Current Level: " + tagLvl.ToString();
@@ -215,18 +201,17 @@ public class Game_logic : MonoBehaviour {
         
     }   
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKey("escape") || Input.GetKey("a"))
         {
             Application.Quit();
         }
-        if (Input.GetKey("s"))
+        if (Input.GetKey("s")) // вызывает сохранение 
         {
             SaveGame(ref tagLvl);
         }
-        if (Input.GetKeyUp("r"))
+        if (Input.GetKeyUp("r")) // Сброс текущего прогресса, переход на первый уровень. Сохранение остаётся
         {
             for (int i = 0; i < 4; i++)
             {
@@ -238,7 +223,7 @@ public class Game_logic : MonoBehaviour {
             countDeaths = 0;
             Lvl(ref tagLvl);
         }
-        if (Input.GetKeyUp("d"))
+        if (Input.GetKeyUp("d")) // Сброс текущего прогресса, переход на первый уровень. Сохранение НЕ остаётся
         {
             PlayerPrefs.DeleteAll();
             for (int i = 0; i < 4; i++)
@@ -260,7 +245,7 @@ public class Game_logic : MonoBehaviour {
 
     }
 
-    void Lvl(ref int tagLvl)
+    void Lvl(ref int tagLvl) // отвечает за расположение и содержание элементов на уровнях. 
     {
         switch (tagLvl)
         {
@@ -288,7 +273,6 @@ public class Game_logic : MonoBehaviour {
                 choice_v3.x = choice_v3.x - (680 * Screen.width / 1920) + (250 * Screen.width / 1920);
 
                 text_game.text = "\nВы находитесь в музее.\n Справа от вас находятся картины эпохи Мезозоя";
-                scrollbar_text.value = 1;
                 choice_t1.text = "Посмотреть картины";
                 choice_t2.text = "Пройти дальше";
                 choice_t3.text = "Своровать картину";
@@ -296,8 +280,7 @@ public class Game_logic : MonoBehaviour {
                 Health.value = 100;
 
                 break;
-
-            // следующая ветвь сделана полностью
+            
             case 11: 
                 image.gameObject.SetActive(true);
                 bool_image = true;
@@ -340,7 +323,7 @@ public class Game_logic : MonoBehaviour {
                 choice_t4.text = "Отвернуться от картин";
                 likesImage.text = "Количество лайков: " + countLikesImage[0].ToString();
                 break;
-            case 111:
+            case 111: 
                 boolLikesImage[0] = false;
                 countLikesImage[0]++;
                 tagLvl = 11;
@@ -483,8 +466,6 @@ public class Game_logic : MonoBehaviour {
 
 
 
-
-            // следующая ветвь ещё не доделана
             case 12:
                 choice_b4.gameObject.SetActive(true);
                 bool_choice_4 = true;
@@ -499,7 +480,7 @@ public class Game_logic : MonoBehaviour {
                 choice_t4.text = "Достать спички и разжечь костёр на ветках";
                 break;
 
-            case 121:  // Доделана
+            case 121:
                 choice_b2.gameObject.SetActive(true);
                 bool_choice_2 = true;
                 choice_b1.transform.position = choice_v1;
@@ -631,7 +612,7 @@ public class Game_logic : MonoBehaviour {
                 tagLvl = 124;
                 goto case 124;
 
-            case 122: // Сделана
+            case 122:
                 choice_b2.gameObject.SetActive(false);
                 bool_choice_2 = false;
 
@@ -651,7 +632,7 @@ public class Game_logic : MonoBehaviour {
                 tagLvl = 124;
                 goto case 124;
 
-            case 123: // сделано
+            case 123: 
                 choice_b2.gameObject.SetActive(true);
                 bool_choice_2 = true;
                 choice_b1.transform.position = choice_v1;
@@ -679,7 +660,7 @@ public class Game_logic : MonoBehaviour {
             case 1232:
                 tagLvl = 123;
                 goto case 123;
-            case 1234: // тут со вторым было что-то не так. Вместо 2 была 1. Где true
+            case 1234:
                 choice_b1.gameObject.SetActive(true);
                 bool_choice_1 = true;
                 choice_b2.gameObject.SetActive(true);
@@ -715,7 +696,7 @@ public class Game_logic : MonoBehaviour {
                 goto case 124;
 
 
-            case 124: // не сделано !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            case 124:
                 choice_b1.gameObject.SetActive(true);
                 bool_choice_1 = true;
                 choice_b2.gameObject.SetActive(true);
@@ -744,7 +725,7 @@ public class Game_logic : MonoBehaviour {
                 choice_t1.text = "Присмотреться к человеку";
                 choice_t2.text = "Присмотреться к картине";
                 choice_t3.text = "Поздороваться с человеком";
-                choice_t4.text = "Поздороваться с картиной"; // Ведёт к 3 ловить вора!
+                choice_t4.text = "Поздороваться с картиной"; 
                 break;
             case 1241:
                 text_game.text = "\n Вы присмотрелись к человеку. Он в чёрной маске, сильно смахивает на вора.\nВнезапно человек бросился бежать от вас";
@@ -762,7 +743,7 @@ public class Game_logic : MonoBehaviour {
                 text_game.text = "\n Вы поздоровались с картиной.\nЧеловек начал убегать от вас.\n Очень Быстро";
                 tagLvl = 1249;
                 goto case 1249;
-            case 1249: // Использовал 9 в tagLvl
+            case 1249: // Использовал 9 в tagLvl. Остановился здесь 
                 choice_b2.gameObject.SetActive(false);
                 bool_choice_2 = false;
                 choice_b3.gameObject.SetActive(false);
@@ -778,7 +759,9 @@ public class Game_logic : MonoBehaviour {
 
                 choice_t1.text = "Догнать!";
                 break;
-            // следующая ветвь сделана полностью
+            
+
+
             case 13:
                 text_game.text = "\nКак Вы будете это делать?";
                 choice_t1.text = "Тихонечько";
@@ -851,13 +834,17 @@ public class Game_logic : MonoBehaviour {
         }
     }
 
-    public void LvlChange(int new_choice)
+
+
+    public void LvlChange(int new_choice) // вызывается при нажатие по кнопке. 
     {
-        tagLvl = tagLvl * 10 + new_choice;
+        tagLvl = tagLvl * 10 + new_choice; // new_choice соответствует номеру кнопки на сцене 
         Lvl(ref tagLvl);
     }
 
-    public void SaveGame(ref int tagLvl)
+
+
+    public void SaveGame(ref int tagLvl) 
     {
         choice_sv1 = choice_b1.transform.position;
         choice_sv2 = choice_b2.transform.position;
@@ -945,12 +932,6 @@ public class Game_logic : MonoBehaviour {
         else
         {
             PlayerPrefs.SetInt("bool_choice_4", 0);
-        }
-
-        
-
-
-    }
-
-    
+        }       
+    }    
 }
