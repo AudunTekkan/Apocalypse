@@ -15,16 +15,43 @@ public class Game_logic : MonoBehaviour {
     public Text meaning;
     public Text deaths;
     public Text likesImage; // с ней связаны: countLikesImage boolLikesImage bool_likes_image 
+    public Text textMain_t;
+    
+    
+    public Text textTimer;
 
     public Button choice_b1;
     public Button choice_b2;
     public Button choice_b3;
     public Button choice_b4;
+    public Button turnLeft_b;
+    public Button turnRight_b;
+    public Button jump_b;
+    public Button stoop_b;
 
     public Image image;
+    public Image robberImage_i;
+    public Image cautionImageLeft_i;
+    public Image cautionImageRight_i;
+    public Image obstacleImage1_i;
+    public Image obstacleImage2_i;
 
     public Slider Health;
+    public GameObject Pursuit_Panel;
+    public GameObject Story_Pannel;
 
+    private Vector2 textMain_v;
+ 
+    
+    private Vector2 turnLeft_v;
+    private Vector2 turnRight_v;
+    private Vector2 jump_v;
+    private Vector2 stoop_v;
+    private Vector2 cautionImageLeft_v;
+    private Vector2 cautionImageRight_v;
+    private Vector2 obstacleImage1_v;
+    private Vector2 obstacleImage2_v;
+    private Vector2 robberImage_v;
     // Для хранения первоначальной позиции кнопок.
     private Vector2 choice_v1; // После изменения значений этих векторов (choice_v№) сразу же присваиваем их первоначальное значение обратно
     private Vector2 choice_v2;
@@ -40,9 +67,20 @@ public class Game_logic : MonoBehaviour {
     private int tagLvl; 
     private int countMeaning;
     private int countDeaths;
+    private int countSeconds;
+    private int frame;
+    private int frame2;
+    private int oneSecond;
+    private int pursuitEvents;
+    private int valueCountSeconds;
+    private int valueOneSecond;
+    private int pursuitDelay;
 
     private int[] countLikesImage = new int [4]; // счётчик лайков для картин 
 
+    private bool bool_Pursuit_Panel;
+    private bool bool_frame2;
+    private bool bool_damage; 
     private bool bool_image; /* при указании: ...gameObject.SetActive(...) обязательно присваивать этим переменным соответсвующие логические значения
     Они нужны, чтобы работать с тем фактом: активны ли эти компоненты?  Т.е. для передачи состояния активности компонента в SaveGame. */
     private bool bool_choice_1;
@@ -60,7 +98,34 @@ public class Game_logic : MonoBehaviour {
         choice_v3 = choice_b3.transform.position;
         choice_v4 = choice_b4.transform.position;
 
-        if (PlayerPrefs.HasKey("Save")) // Если есть сохранение, достаём сохранённые значения
+        textMain_v = textMain_t.transform.position;
+      
+        turnLeft_v = turnLeft_b.transform.position;
+        turnRight_v = turnRight_b.transform.position;
+        jump_v = jump_b.transform.position;
+        stoop_v = stoop_b.transform.position;
+        cautionImageLeft_v = cautionImageLeft_i.transform.position;
+        cautionImageRight_v = cautionImageLeft_i.transform.position;
+        obstacleImage1_v = obstacleImage1_i.transform.position;
+        obstacleImage2_v = obstacleImage2_i.transform.position;
+        robberImage_v = robberImage_i.transform.position;
+        Pursuit_Panel.gameObject.SetActive(false);
+        Story_Pannel.gameObject.SetActive(true);
+        valueCountSeconds = 50;
+        countSeconds = valueCountSeconds;
+        frame = 0;
+        frame2 = -42;
+        valueOneSecond = 45;
+        oneSecond = valueOneSecond;
+        pursuitEvents = 0;
+        pursuitDelay = 180; // есть ещё и на tagLvl = 12491
+        bool_frame2 = true;
+        bool_damage = true;
+
+
+
+        // Если есть сохранение, достаём сохранённые значения
+        if (PlayerPrefs.HasKey("Save")) 
         {
             tagLvl = PlayerPrefs.GetInt("Lvl");
             countMeaning = PlayerPrefs.GetInt("Meaning");
@@ -221,6 +286,16 @@ public class Game_logic : MonoBehaviour {
             tagLvl = 1;
             countMeaning = 100;
             countDeaths = 0;
+            Story_Pannel.gameObject.SetActive(true);
+            Pursuit_Panel.gameObject.SetActive(false);
+            countSeconds = valueCountSeconds;
+            frame = 0;
+            frame2 = -42;
+            oneSecond = valueOneSecond;
+            pursuitEvents = 0;
+            bool_frame2 = true;
+            bool_damage = true;
+            bool_Pursuit_Panel = false;
             Lvl(ref tagLvl);
         }
         if (Input.GetKeyUp("d")) // Сброс текущего прогресса, переход на первый уровень. Сохранение НЕ остаётся
@@ -234,6 +309,16 @@ public class Game_logic : MonoBehaviour {
             tagLvl = 1;
             countMeaning = 100;
             countDeaths = 0;
+            Story_Pannel.gameObject.SetActive(true);
+            Pursuit_Panel.gameObject.SetActive(false);
+            countSeconds = valueCountSeconds;
+            frame = 0;
+            frame2 = -42;
+            oneSecond = valueOneSecond;
+            pursuitEvents = 0;
+            bool_frame2 = true;
+            bool_damage = true;
+            bool_Pursuit_Panel = false;
             Lvl(ref tagLvl);
         }
     }
@@ -242,7 +327,168 @@ public class Game_logic : MonoBehaviour {
         current_level.text = "Current Level: " + tagLvl.ToString();
         meaning.text = "Meaning: " + countMeaning.ToString();
         deaths.text = "Deaths: " + countDeaths.ToString();
+        if (bool_Pursuit_Panel == true)
+        {
+            textTimer.text = countSeconds.ToString();
+            if (countSeconds > 0 && frame == 60) {
+                countSeconds -= 1;
+                frame = 0;
+            }
+            frame += 1;
+            if (pursuitDelay > 0)
+            {
+                pursuitDelay -= 1;
+            } else
+            {
+                if (bool_frame2 == false)
+                {
+                    oneSecond -= 1;
+                    if (oneSecond == 0)
+                    {
+                        bool_frame2 = true;
 
+                        if (pursuitEvents == 1)
+                        {
+                            cautionImageRight_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 15;
+                            }
+                        }
+                        else if (pursuitEvents == 2)
+                        {
+                            obstacleImage2_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 16;
+                            }
+                        }
+                        else if (pursuitEvents == 3)
+                        {
+                            obstacleImage2_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 90;
+                            }
+                        }
+                        else if (pursuitEvents == 4)
+                        {
+                            obstacleImage2_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 4;
+                            }
+                        }
+                        else if (pursuitEvents == 5)
+                        {
+                            obstacleImage1_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 10;
+                            }
+                        }
+                        else if (pursuitEvents == 6)
+                        {
+                            obstacleImage1_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 22;
+                            }
+                        }
+                        else if (pursuitEvents == 7)
+                        {
+                            obstacleImage1_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 66;
+                            }
+                        }
+                        else if (pursuitEvents == 8)
+                        {
+                            cautionImageLeft_i.gameObject.SetActive(false);
+                            if (bool_damage == true)
+                            {
+                                Health.value -= 15;
+                            }
+                        }
+                        pursuitEvents = 0;
+                        bool_damage = true;
+                    }
+                }
+                else
+                {
+                    if (frame2 == -42)
+                    {
+                        frame2 = Random.Range(20, 90); // время до появления новых препятствий (в кадрах)
+                    }
+                    if (frame2 > 0)
+                    {
+                        frame2 -= 1;
+                    }
+                    else
+                    {
+                        frame2 = -42;
+                        oneSecond = valueOneSecond;
+                        bool_frame2 = false;
+                        pursuitEvents = Random.Range(1, 9); // 3 - снизу, 3 - сверху, 1 - слева, 1 - справа
+                        if (pursuitEvents == 1)
+                        {
+                            cautionImageRight_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 2)
+                        {
+                            obstacleImage2_i.sprite = Resources.Load<Sprite>("разбитая бутылка");
+                            obstacleImage2_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 3)
+                        {
+                            obstacleImage2_i.sprite = Resources.Load<Sprite>("Шипы");
+                            obstacleImage2_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 4)
+                        {
+                            obstacleImage2_i.sprite = Resources.Load<Sprite>("кожура банана");
+                            obstacleImage2_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 5)
+                        {
+                            obstacleImage1_i.sprite = Resources.Load<Sprite>("Банан");
+                            obstacleImage1_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 6)
+                        {
+                            obstacleImage1_i.sprite = Resources.Load<Sprite>("Птица");
+                            obstacleImage1_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 7)
+                        {
+                            obstacleImage1_i.sprite = Resources.Load<Sprite>("бомба");
+                            obstacleImage1_i.gameObject.SetActive(true);
+                        }
+                        else if (pursuitEvents == 8)
+                        {
+                            cautionImageLeft_i.gameObject.SetActive(true);
+                        }
+                    }
+                }
+
+            }
+            if (Health.value <= 0)
+            {
+                // смерть
+                tagLvl = 666;
+                Lvl(ref tagLvl);
+            }
+            if (countSeconds == 0)
+            {
+                tagLvl = 124915;
+                Lvl(ref tagLvl);
+            }
+            if ((countSeconds < 5) && (pursuitDelay <= 0) && (frame2 != -42))
+            {
+                pursuitDelay = 300;
+            }
+        }
     }
 
     void Lvl(ref int tagLvl) // отвечает за расположение и содержание элементов на уровнях. 
@@ -743,7 +989,7 @@ public class Game_logic : MonoBehaviour {
                 text_game.text = "\n Вы поздоровались с картиной.\nЧеловек начал убегать от вас.\n Очень Быстро";
                 tagLvl = 1249;
                 goto case 1249;
-            case 1249: // Использовал 9 в tagLvl. Остановился здесь 
+            case 1249: // Использовал 9 в tagLvl
                 choice_b2.gameObject.SetActive(false);
                 bool_choice_2 = false;
                 choice_b3.gameObject.SetActive(false);
@@ -759,8 +1005,140 @@ public class Game_logic : MonoBehaviour {
 
                 choice_t1.text = "Догнать!";
                 break;
-            
+            case 12491:// Погоня за вором
+                // 
+                choice_b1.gameObject.SetActive(false);
+                bool_choice_1 = false;
+                text_game.text = "";
+                Story_Pannel.gameObject.SetActive(false);
+                pursuitDelay = 180; 
+                // расставляем элементы погони в начальное положение, затем активируем панель погони 
+                cautionImageRight_v.x = cautionImageRight_v.x + (340 * Screen.width / 1920);
+                cautionImageRight_i.transform.position = cautionImageRight_v;
+                cautionImageRight_v.x = cautionImageRight_v.x - (340 * Screen.width / 1920);
+                cautionImageRight_i.gameObject.SetActive(false);
 
+                cautionImageLeft_v.x = cautionImageLeft_v.x - (340 * Screen.width / 1920);
+                cautionImageLeft_i.transform.position = cautionImageLeft_v;
+                cautionImageLeft_v.x = cautionImageLeft_v.x + (340 * Screen.width / 1920);
+                cautionImageLeft_i.gameObject.SetActive(false);
+
+                obstacleImage1_v.y = obstacleImage1_v.y - (455 * Screen.height / 1080);
+                obstacleImage1_i.transform.position = obstacleImage1_v;
+                obstacleImage1_v.y = obstacleImage1_v.y + (455 * Screen.height / 1080);
+                obstacleImage1_i.gameObject.SetActive(false);
+
+                obstacleImage2_v.y = obstacleImage2_v.y - (885 * Screen.height / 1080);
+                obstacleImage2_i.transform.position = obstacleImage2_v;
+                obstacleImage2_v.y = obstacleImage2_v.y + (885 * Screen.height / 1080);
+                obstacleImage2_i.gameObject.SetActive(false);
+
+                robberImage_v.y = robberImage_v.y - (60 * Screen.height / 1080);
+                robberImage_i.transform.position = robberImage_v;
+                robberImage_v.y = robberImage_v.y + (60 * Screen.height / 1080);
+
+                textMain_v.y = textMain_v.y - (415 * Screen.height / 1080);
+                textMain_t.transform.position = textMain_v;
+                textMain_v.y = textMain_v.y + (415 * Screen.height / 1080);
+                textMain_t.text = "Вор убегает!";
+
+                
+
+                
+
+                stoop_v.y = stoop_v.y - (860 * Screen.height / 1080) + (95 * Screen.height / 1080);
+                stoop_b.transform.position = stoop_v;
+                stoop_v.y = stoop_v.y + (860 * Screen.height / 1080) - (95 * Screen.height / 1080);
+
+                jump_v.y = jump_v.y - (860 * Screen.height / 1080) + (215 * Screen.height / 1080);
+                jump_b.transform.position = jump_v;
+                jump_v.y = jump_v.y + (860 * Screen.height / 1080) - (215 * Screen.height / 1080);
+
+                 turnLeft_v.x = turnLeft_v.x + (200 * Screen.width / 1920);
+                 turnLeft_b.transform.position = turnLeft_v;
+                 turnLeft_v.x = turnLeft_v.x - (200 * Screen.width / 1920);
+
+                 turnRight_v.x = turnRight_v.x - (200 * Screen.width / 1920);
+                 turnRight_b.transform.position = turnRight_v;
+                 turnRight_v.x = turnRight_v.x + (200 * Screen.width / 1920);
+
+                Pursuit_Panel.gameObject.SetActive(true);
+                bool_Pursuit_Panel = true;
+                break;
+
+            case 666:
+                Story_Pannel.gameObject.SetActive(true);
+                Pursuit_Panel.gameObject.SetActive(false);
+                countSeconds = valueCountSeconds;
+                frame = 0;
+                frame2 = -42;
+                oneSecond = valueOneSecond;
+                pursuitEvents = 0;
+                bool_frame2 = true;
+                bool_damage = true;
+                bool_Pursuit_Panel = false;
+
+                image.gameObject.SetActive(false);
+                bool_image = false;
+                choice_b1.gameObject.SetActive(true);
+                bool_choice_1 = true;
+                choice_b2.gameObject.SetActive(false);
+                bool_choice_2 = false;
+                choice_b3.gameObject.SetActive(false);
+                bool_choice_3 = false;
+                choice_b4.gameObject.SetActive(false);
+                bool_choice_4 = false;
+
+                choice_v1.x = choice_v1.x + (680 * Screen.width / 1920) - (250 * Screen.width / 1920);
+                choice_v1.y = choice_v1.y - (150 * Screen.height / 1080) + (60 * Screen.height / 1080);
+                choice_b1.transform.position = choice_v1;
+                choice_v1.x = choice_v1.x - (680 * Screen.width / 1920) + (250 * Screen.width / 1920);
+                choice_v1.y = choice_v1.y + (150 * Screen.height / 1080) - (60 * Screen.height / 1080);
+
+                text_game.text = "\nВы умерли!";
+                choice_t1.text = "Начать игру сначала";
+                break;
+            case 6661:
+                countDeaths++;
+                tagLvl = 1;
+                goto case 1;
+
+            case 124915:
+                Story_Pannel.gameObject.SetActive(true);
+                Pursuit_Panel.gameObject.SetActive(false);
+                countSeconds = valueCountSeconds;
+                frame = 0;
+                frame2 = -42;
+                oneSecond = valueOneSecond;
+                pursuitEvents = 0;
+                bool_frame2 = true;
+                bool_damage = true;
+                bool_Pursuit_Panel = false;
+
+                image.gameObject.SetActive(true);
+                bool_image = true;
+                image.sprite = Resources.Load<Sprite>("мезозой");
+                choice_b1.gameObject.SetActive(true);
+                bool_choice_1 = true;
+                choice_b2.gameObject.SetActive(false);
+                bool_choice_2 = false;
+                choice_b3.gameObject.SetActive(false);
+                bool_choice_3 = false;
+                choice_b4.gameObject.SetActive(false);
+                bool_choice_4 = false;
+
+                choice_v1.x = choice_v1.x + (680 * Screen.width / 1920) - (250 * Screen.width / 1920);
+                choice_v1.y = choice_v1.y - (150 * Screen.height / 1080) + (60 * Screen.height / 1080);
+                choice_b1.transform.position = choice_v1;
+                choice_v1.x = choice_v1.x - (680 * Screen.width / 1920) + (250 * Screen.width / 1920);
+                choice_v1.y = choice_v1.y + (150 * Screen.height / 1080) - (60 * Screen.height / 1080);
+
+                text_game.text = "\n Конец\n\n\nВы поймали вора и спасли самую ценную картину музея!";
+                choice_t1.text = "выйти из игры";
+                break;
+            case 1249151:
+                Application.Quit();
+                break;
 
             case 13:
                 text_game.text = "\nКак Вы будете это делать?";
@@ -840,6 +1218,70 @@ public class Game_logic : MonoBehaviour {
     {
         tagLvl = tagLvl * 10 + new_choice; // new_choice соответствует номеру кнопки на сцене 
         Lvl(ref tagLvl);
+    }
+
+    public void PursuitButtons(int PursuitChoice)
+    {
+        if (PursuitChoice == 1)
+        {
+            if (pursuitEvents == 8)
+            {
+                bool_damage = false;
+                oneSecond = 1;
+            } else if (pursuitEvents == 0)
+            {
+                Health.value -= 15;
+            } else
+            {
+                bool_damage = true;
+                oneSecond = 1;
+            }
+        }
+        else if (PursuitChoice == 2)
+        {
+            if ((pursuitEvents == 2) || (pursuitEvents == 3) || (pursuitEvents == 4))
+            {
+                bool_damage = false;
+                oneSecond = 1;
+            } else if (pursuitEvents == 0)
+            {
+
+            } else
+            {
+                bool_damage = true;
+                oneSecond = 1;
+            }
+        }
+        else if (PursuitChoice == 3)
+        {
+            if (pursuitEvents == 1)
+            {
+                bool_damage = false;
+                oneSecond = 1;
+            } else if (pursuitEvents == 0)
+            {
+                Health.value -= 15;
+            } else
+            {
+                bool_damage = true;
+                oneSecond = 1;
+            }
+        }
+        else if (PursuitChoice == 4)
+        {
+            if ((pursuitEvents == 5) || (pursuitEvents == 6) || (pursuitEvents == 7))
+            {
+                bool_damage = false;
+                oneSecond = 1;
+            } else if (pursuitEvents == 0)
+            {
+
+            } else
+            {
+                bool_damage = true;
+                oneSecond = 1;
+            }
+        }
     }
 
 
