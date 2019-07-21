@@ -16,8 +16,11 @@ public class Game_logic : MonoBehaviour {
     public Text deaths;
     public Text likesImage; // с ней связаны: countLikesImage boolLikesImage bool_likes_image 
     public Text textMain_t;
-    
-    
+    public Text lvl1212;
+    public Text lvl12491;
+
+
+
     public Text textTimer;
 
     public Button choice_b1;
@@ -111,7 +114,7 @@ public class Game_logic : MonoBehaviour {
         robberImage_v = robberImage_i.transform.position;
         Pursuit_Panel.gameObject.SetActive(false);
         Story_Pannel.gameObject.SetActive(true);
-        valueCountSeconds = 50;
+        valueCountSeconds = 86;
         countSeconds = valueCountSeconds;
         frame = 0;
         frame2 = -42;
@@ -352,6 +355,7 @@ public class Game_logic : MonoBehaviour {
                             cautionImageRight_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "hitTheWall";
                                 Health.value -= 15;
                             }
                         }
@@ -360,6 +364,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage2_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "toHurtYourselfOnTheShardsOfGlass";
                                 Health.value -= 16;
                             }
                         }
@@ -368,6 +373,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage2_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "spikes";
                                 Health.value -= 90;
                             }
                         }
@@ -376,6 +382,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage2_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "slip";
                                 Health.value -= 4;
                             }
                         }
@@ -384,6 +391,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage1_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "bananaHit";
                                 Health.value -= 10;
                             }
                         }
@@ -392,6 +400,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage1_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "cryBird";
                                 Health.value -= 22;
                             }
                         }
@@ -400,6 +409,7 @@ public class Game_logic : MonoBehaviour {
                             obstacleImage1_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "explosion";
                                 Health.value -= 66;
                             }
                         }
@@ -408,6 +418,7 @@ public class Game_logic : MonoBehaviour {
                             cautionImageLeft_i.gameObject.SetActive(false);
                             if (bool_damage == true)
                             {
+                                lvl12491.text = "hitTheWall";
                                 Health.value -= 15;
                             }
                         }
@@ -434,6 +445,7 @@ public class Game_logic : MonoBehaviour {
                         if (pursuitEvents == 1)
                         {
                             cautionImageRight_i.gameObject.SetActive(true);
+                            lvl12491.text = "turn";
                         }
                         else if (pursuitEvents == 2)
                         {
@@ -454,20 +466,24 @@ public class Game_logic : MonoBehaviour {
                         {
                             obstacleImage1_i.sprite = Resources.Load<Sprite>("Банан");
                             obstacleImage1_i.gameObject.SetActive(true);
+                            lvl12491.text = "bananaFlies";
                         }
                         else if (pursuitEvents == 6)
                         {
                             obstacleImage1_i.sprite = Resources.Load<Sprite>("Птица");
                             obstacleImage1_i.gameObject.SetActive(true);
+                            lvl12491.text = "birdFlies";
                         }
                         else if (pursuitEvents == 7)
                         {
                             obstacleImage1_i.sprite = Resources.Load<Sprite>("бомба");
                             obstacleImage1_i.gameObject.SetActive(true);
+                            lvl12491.text = "bombHissings";
                         }
                         else if (pursuitEvents == 8)
                         {
                             cautionImageLeft_i.gameObject.SetActive(true);
+                            lvl12491.text = "turn";
                         }
                     }
                 }
@@ -740,6 +756,7 @@ public class Game_logic : MonoBehaviour {
             case 1211: 
                 Health.value -= 80;
                 countMeaning -= 20;
+                lvl1212.text = "hit the floor";
 
                 text_game.text = "\n Убежать не удалось. Вы споткнулись обо что-то и упали. Было больно. \n Внимание! \nКоличество смысла уменьшилось.\nОхранник куда-то исчез";
                 choice_t1.text = "Осмотреться";
@@ -781,6 +798,7 @@ public class Game_logic : MonoBehaviour {
                 tagLvl = 1;
                 goto case 1;
             case 1214:
+                lvl1212.text = "power of mathematics";
                 text_game.text = "\nВы начали произносить какое-то магическое заклинание. Охранник в ужасе убежал через потолок";
                 choice_t1.text = "Осмотреться";
                 choice_t2.text = "Прилечь на пол и спать";
